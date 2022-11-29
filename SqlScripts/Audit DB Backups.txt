@@ -1,0 +1,57 @@
+SELECT 
+  GETDATE() as [QueryDate]
+ ,@@SERVERNAME as [SqlServerInstance]
+ ,[database_name] as [Database]
+ ,[backup_start_date]
+ ,[backup_finish_date]
+ ,CASE [type]
+   WHEN 'D' THEN 'Database'
+   WHEN 'I' THEN 'Differential database'
+   WHEN 'L' THEN 'Log'
+   WHEN 'F' THEN 'File or filegroup'
+   WHEN 'G' THEN 'Differential file'
+   WHEN 'P' THEN 'Partial'
+   WHEN 'Q' THEN 'Differential partial'
+   ELSE 'Unknown'
+ END AS [BackupType]
+ ,[is_copy_only] as [IsCopyOnly]
+FROM msdb.dbo.backupset
+
+SELECT
+  GETDATE() AS [QueryDate]
+ ,@@SERVERNAME as [SqlServerInstance]
+ ,j.[name] as [JobName]
+ ,j.[enabled] as [Enabled]
+ ,msdb.dbo.agent_datetime(h.[run_date], h.[run_time]) as [ExecutionDate]
+ ,h.run_duration as [ExecutionDuration(sec)]
+ ,h.step_name as [StepName]
+ ,CASE(h.[run_status])
+  WHEN 0 THEN 'Failed'
+  WHEN 1 THEN 'Succeeded'
+  WHEN 2 THEN 'Retry'
+  WHEN 3 THEN 'Canceled'
+  WHEN 4 THEN 'In Progress'
+  ELSE 'Unknown'
+ END as [ExecutionResult]
+FROM msdb.dbo.sysjobs as j
+INNER JOIN msdb.dbo.sysjobhistory as h
+ ON j.[job_id] = h.[job_id]
+WHERE j.[name] IN ('DatabaseBackup - ALL_DATABASES - FULL','DatabaseBackup - ALL_DATABASES - LOG')
+
+
+
+SELECT
+  GETDATE() AS [QueryDate]
+ ,@@SERVERNAME as [SqlServerInstance]
+ ,[restore_date] as [RestoreDate]
+ ,[destination_database_name] as [DestinationDB]
+ ,CASE [restore_type]
+   WHEN 'D' THEN 'Database'
+   WHEN 'F' THEN 'File'
+   WHEN 'G' THEN 'Filegroup'
+   WHEN 'I' THEN 'Differential'
+   WHEN 'L' THEN 'Log'
+   WHEN 'V' THEN 'Verifyonly'
+   ELSE 'Unknown'
+  END as [RestoreType]
+FROM msdb.dbo.restorehistory

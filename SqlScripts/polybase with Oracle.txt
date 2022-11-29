@@ -1,0 +1,17 @@
+CREATE DATABASE SCOPED CREDENTIAL <CredentialName>
+WITH IDENTITY = '<Username>', Secret = '<Password>';
+
+CREATE EXTERNAL DATA SOURCE <DataSourceName>
+WITH (
+  LOCATION = 'oracle://<ServerNameOrIP>:<Port>',
+  PUSHDOWN = ON,
+  CREDENTIAL = <CredentialName>
+)
+
+CREATE EXTERNAL TABLE <Schema>.<MyTableName>
+(
+	<columnDefinition>
+)
+WITH
+( LOCATION = '<ServiceName_or_SID>.<Schema>.<Object>',
+,DATA_SOURCE = <DataSourceName>)
