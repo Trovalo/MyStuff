@@ -1,0 +1,29 @@
+USE Mapping
+
+DECLARE @CollateTo AS nvarchar(50) = 'SQL_Latin1_General_CP1_CI_AS'
+
+SELECT
+'' AS SchemaName,'' AS TableName,'USE '+ QUOTENAME(DB_NAME()) AS SqlCommand
+UNION ALL
+SELECT
+	 SchemaName
+	,TableName
+	,'ALTER TABLE '+QUOTENAME(SchemaName)+'.'+QUOTENAME(TableName)+' ALTER COLUMN '+QUOTENAME(ColumnName)+' '+QUOTENAME(DataType)+'('+Lenght+') COLLATE '+@CollateTo AS SqlCommand
+FROM (
+	SELECT
+		 SCHEMA_NAME(tb.schema_id) AS SchemaName
+		,tb.name AS TableName
+		,cl.name AS ColumnName
+		,ty.name AS DataType
+		,CAST(cl.max_length as nvarchar) AS Lenght
+		,cl.collation_name AS Collation
+	FROM sys.tables as tb
+	LEFT JOIN sys.columns as cl
+		ON tb.object_id = cl.object_id
+	LEFT JOIN sys.types as ty
+		ON cl.system_type_id = ty.system_type_id
+	WHERE
+		tb.type = 'U'	--user table only
+		AND tb.is_external = 0	-- no external tables
+		AND cl.collation_name = 'Latin1_General_100_BIN2_UTF8'	-- only wrong collation
+) AS x
